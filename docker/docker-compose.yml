@@ -1,0 +1,106 @@
+version: '2'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    volumes:
+       - jenkins_data:/var/jenkins_home
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+
+  sonarqube:
+    image: sonarqube:community
+    depends_on:
+      - db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+  db:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+
+      
+
+  vault-filesystem:
+    build: ./vault/
+    container_name: vault
+    ports:
+      - 8200:8200
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_API_ADDR=http://127.0.0.1:8200
+    command: server -config=/vault/config/vault-config.json
+    cap_add:
+      - IPC_LOCK
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql:
+  postgresql_data:
+  jenkins_data:
+
+# version: "3"
+
+# services:
+#   sonarqube:
+#     image: sonarqube:lts-community
+#     depends_on:
+#       - db
+#     environment:
+#       SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+#       SONAR_JDBC_USERNAME: sonar
+#       SONAR_JDBC_PASSWORD: sonar
+#       sonar.jdbc.username: sonarqube
+#       sonar.jdbc.password: pass
+#       sonar.jdbc.url: jdbc:postgresql://localhost:5432/sonarqube
+
+#     volumes:
+#       - sonarqube_data:/opt/sonarqube/data
+#       - sonarqube_extensions:/opt/sonarqube/extensions
+#       - sonarqube_logs:/opt/sonarqube/logs
+#     ports:
+#       - "9000:9000"
+#   db:
+#     image: postgres:12
+#     environment:
+#       POSTGRES_USER: sonar
+#       POSTGRES_PASSWORD: sonar
+#     volumes:
+#       - postgresql:/var/lib/postgresql
+#       - postgresql_data:/var/lib/postgresql/data
+
+# volumes:
+#   sonarqube_data:
+#   sonarqube_extensions:
+#   sonarqube_logs:
+#   postgresql:
+#   postgresql_data:
+
+
+  # vault:
+  #   image: vault
+  #   container_name: prodvault
+  #   environment:
+  #       VAULT_ADDR: http://127.0.0.1:8200
+  #   ports:
+  #       - "8200:8200"
+  #   volumes:
+  #       - private-volume:/vault/file:rw
+  #       - ./vault:/vault/config:rw
+  #   cap_add:
+  #       - IPC_LOCK
+  #   entrypoint: vault server -config=/vault/config/vault.json
