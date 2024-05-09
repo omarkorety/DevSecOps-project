@@ -1,12 +1,12 @@
 pipeline {
-    agent any
+    agent { label 'master' }
     tools { 
         maven 'maven-3.8.6' 
     }
     stages {
         // stage('Checkout git') {
         //     steps {
-        //        git branch: 'main', url: 'https://github.com/praveensirvi1212/DevSecOps-project'
+        //        git branch: 'main', url: 'https://github.com/omarkorety/DevSecOps-project.git'
         //     }
         // }
         
